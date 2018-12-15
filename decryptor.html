@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Trusty Safe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <input type="password" id="txt_password">
+    <input type="button" id="btn_decrypt" value="Decrypt">
+    <script>
+        const PBKDF2_SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        const AES_GCM_IV = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        const FILENAME = '';
+        const ENCRYPTED_DATA_UTF8 = 'test';
+    </script>
+    <script>
+        const DERIVATION_ALGORITHM = {
+            name: "PBKDF2",
+            salt: PBKDF2_SALT,
+            iterations: 200000,
+            hash: {
+                name: "SHA-512"
+            }
+        };
+        const DECRYPTION_ALGORITHM = {
+            name: "AES-GCM",
+            length: 256,
+            iv: AES_GCM_IV
+        };
+
+        function deriveKey(password) {
+            const passwordBytes = new TextEncoder('utf-8').encode(password);
+
+            return window.crypto.subtle.importKey(
+                'raw',
+                passwordBytes, {
+                    name: 'PBKDF2'
+                },
+                false,
+                ['deriveKey']
+            ).then(function (key) {
+                return window.crypto.subtle.deriveKey(DERIVATION_ALGORITHM,
+                    key,
+                    DECRYPTION_ALGORITHM,
+                    false,
+                    ['decrypt', 'encrypt']
+                )
+            });
+        }
+
+        function decrypt(key) {
+            const encryptedBytes = new TextEncoder('utf-8').encode(ENCRYPTED_DATA_UTF8);
+            return window.crypto.subtle.decrypt(DECRYPTION_ALGORITHM, key, encryptedBytes)
+        }
+
+        function encrypt(key) {
+            const bytes = new TextEncoder('utf-8').encode(ENCRYPTED_DATA_UTF8);
+            return window.crypto.subtle.encrypt(DECRYPTION_ALGORITHM, key, encryptedBytes);
+        }
+
+        function download(bytes) {
+            const downloadLink = document.createElement('a');
+            a.style = 'display: none';
+            document.body.appendChild(a);
+            blob = new Blob([bytes.buffer], {
+                type: 'application/octet-stream'
+            });
+            url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function runDecrypt() {
+            if (!window.crypto) {
+                alert(
+                    'Full support for the WebCrypto API is needed for decryption. Please use one of the following browsers: Chrome 37+, Firefox 34+, Safari 7+, Opera 24+'
+                )
+            }
+            const password = document.getElementById('txt_password').value;
+            deriveKey(password).then(decrypt).then(download);
+        }
+
+        document.getElementById('btn_decrypt').addEventListener('click', runDecrypt);
+    </script>
+</body>
+
+</html>
