@@ -32,7 +32,7 @@
             return new Promise((resolve, reject) => {
                 reader.onerror = () => {
                     reader.abort();
-                    reject(new DOMException('Cannot read input file.'));
+                    reject(new DOMException("Cannot read input file."));
                 };
 
                 reader.onload = () => {
@@ -61,15 +61,15 @@
                 ['deriveKey']
             ).then(function (key) {
                 return window.crypto.subtle.deriveKey({
-                        name: 'PBKDF2',
+                        name: "PBKDF2",
                         salt,
                         iterations: 200000,
                         hash: {
-                            name: 'SHA-512'
+                            name: "SHA-512"
                         }
                     },
                     key, {
-                        name: 'AES-GCM',
+                        name: "AES-GCM",
                         length: 256
                     },
                     false,
@@ -80,7 +80,7 @@
 
         function encrypt(key, iv, bytes) {
             return window.crypto.subtle.encrypt({
-                name: 'AES-GCM',
+                name: "AES-GCM",
                 length: 256,
                 iv
             }, key, bytes)
@@ -96,11 +96,13 @@
         }
 
         function serialize(salt, iv, cipher_buffer) {
-            return new TextEncoder('utf-8').encode(JSON.stringify({
+            const payload = JSON.stringify({
                 salt: Array.prototype.slice.call(salt),
                 iv: Array.prototype.slice.call(iv),
                 encrypted: arrayToBase64(new Uint8Array(cipher_buffer))
-            }));
+            });
+            const decryptor_html = DECRYPTOR_TEMPLATE.replace('{{___PAYLOAD___}}', payload);
+            return new TextEncoder('utf-8').encode(decryptor_html);
         }
 
         function download(filename, buffer) {
@@ -137,7 +139,7 @@
             }
 
             document.getElementById('encrypt').disabled = true;
-            document.getElementById('encrypt').value = 'Encrypting...';
+            document.getElementById('encrypt').value = "Encrypting...";
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
@@ -150,10 +152,131 @@
                 .then(buffer => download(file.name + '.html', buffer));
 
             document.getElementById('encrypt').disabled = false;
-            document.getElementById('encrypt').value = 'Encrypt file';
+            document.getElementById('encrypt').value = "Encrypt file";
         }
 
         document.getElementById('encrypt').addEventListener('click', runEncrypt);
+
+        const DECRYPTOR_TEMPLATE = `
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>PolySafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <label for="password">Password:</label>
+    <input type="password" id="password">
+    <input type="button" id="decrypt" value="Decrypt file">
+    <script id="data" type="application/json">
+        {{___PAYLOAD___}}
+    <\/script>
+    <script>
+        function base64ToArray(base64) {
+            return new Uint8Array(atob(base64).split('').map(function (c) {
+                return c.charCodeAt(0);
+            }));
+        }
+
+        function deriveKey(password, salt) {
+            const passwordBytes = new TextEncoder('utf-8').encode(password);
+
+            return window.crypto.subtle.importKey(
+                'raw',
+                passwordBytes, {
+                    name: 'PBKDF2'
+                },
+                false,
+                ['deriveKey']
+            ).then(function (key) {
+                return window.crypto.subtle.deriveKey({
+                        name: 'PBKDF2',
+                        salt,
+                        iterations: 200000,
+                        hash: {
+                            name: 'SHA-512'
+                        }
+                    },
+                    key, {
+                        name: 'AES-GCM',
+                        length: 256
+                    },
+                    false,
+                    ['decrypt']
+                )
+            });
+        }
+
+        function decrypt(key, iv, bytes) {
+            return window.crypto.subtle.decrypt({
+                name: 'AES-GCM',
+                length: 256,
+                iv
+            }, key, bytes)
+        }
+
+        function extractDecryptedFile(buffer) {
+            const bytes = new Uint8Array(buffer);
+            const slash_pos = bytes.indexOf('/'.charCodeAt(0));
+            if (slash_pos == -1) {
+                throw 'Decrypted data is corrupted';
+            } else {
+                const name = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
+                const content = bytes.slice(slash_pos + 1);
+                return {
+                    name,
+                    content
+                };
+            }
+        }
+
+        function download(filename, buffer) {
+            const a = document.createElement('a');
+            a.style = 'display: none';
+            document.body.appendChild(a);
+            blob = new Blob([buffer], {
+                type: 'application/octet-stream'
+            });
+            url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function runDecrypt() {
+            if (!window.crypto) {
+                alert(
+                    'Full support for the WebCrypto API is needed for decryption. Please use one of the following browsers: Chrome 37+, Firefox 34+, Safari 7+, Opera 24+'
+                )
+            }
+            document.getElementById('decrypt').disabled = true;
+            document.getElementById('decrypt').value = 'Decrypting...';
+
+            const data = JSON.parse(document.getElementById('data').textContent);
+            const salt = new Uint8Array(data.salt);
+            const iv = new Uint8Array(data.iv);
+            const encrypted = base64ToArray(data.encrypted);
+
+            const password = document.getElementById('password').value;
+            deriveKey(password, salt)
+                .then(key => decrypt(key, iv, encrypted))
+                .then(extractDecryptedFile)
+                .then(file => download(file.name, file.content));
+
+            document.getElementById('decrypt').disabled = false;
+            document.getElementById('decrypt').value = 'Decrypt file';
+        }
+
+        document.getElementById('decrypt').addEventListener('click', runDecrypt);
+    <\/script>
+</body>
+
+</html>
+`;
     </script>
 </body>
 
