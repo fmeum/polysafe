@@ -66,12 +66,16 @@
             }, key, bytes)
         }
 
+        function arrayToBase64(array) {
+            return btoa(String.fromCharCode.apply(null, array));
+        }
+
         function serialize(salt, iv, cipher_buffer) {
-            return JSON.stringify({
+            return new TextEncoder('utf-8').encode(JSON.stringify({
                 salt: Array.prototype.slice.call(salt),
                 iv: Array.prototype.slice.call(iv),
-                encrypted: btoa(new Uint8Array(cipher_buffer))
-            });
+                encrypted: arrayToBase64(new Uint8Array(cipher_buffer))
+            }));
         }
 
         function download(filename, buffer) {
@@ -97,16 +101,17 @@
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
+            const filename = FILENAME;
 
-            const payload_bytes = preprendFilename(FILENAME, DATA_BYTES);
+            const payload_bytes = preprendFilename(filename, DATA_BYTES);
             const password = document.getElementById('txt_password').value;
             deriveKey(password, salt)
-                    .then(key => encrypt(key, iv, payload_bytes))
-                    .then(buffer => serialize(salt, iv, buffer))
-                    .then(console.log);
-                }
+                .then(key => encrypt(key, iv, payload_bytes))
+                .then(buffer => serialize(salt, iv, buffer))
+                .then(buffer => download(filename + '.html', buffer));
+        }
 
-            document.getElementById('btn_encrypt').addEventListener('click', runEncrypt);
+        document.getElementById('btn_encrypt').addEventListener('click', runEncrypt);
     </script>
 </body>
 
