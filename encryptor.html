@@ -3,24 +3,44 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Trusty Safe</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-    <input type="password" id="txt_password">
-    <input type="button" id="btn_encrypt" value="Encrypt">
-    <script>
-        const FILENAME = 'example.txt';
-        const DATA_BYTES = new TextEncoder('utf-8').encode('Hello World, encrypted!');
-    </script>
+    <label for="file">Choose a file to encrypt:</label>
+    <input type="file" id="file"><br>
+    <label for="password">Password:</label>
+    <input type="password" id="password"><br>
+    <label for="password_repeated">Repeat password:</label>
+    <input type="password" id="password_repeated"><br>
+    <input type="button" id="encrypt" value="Encrypt file">
     <script>
         function getRandomBytes(num) {
             let bytes = new Uint8Array(num);
             window.crypto.getRandomValues(bytes);
             return bytes;
         }
+
+        function readFile(file) {
+            return new Uint8Array(new FileReader().readAsArrayBuffer(file));
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+
+            return new Promise((resolve, reject) => {
+                reader.onerror = () => {
+                    reader.abort();
+                    reject(new DOMException("Cannot read input file."));
+                };
+
+                reader.onload = () => {
+                    resolve(new Uint8Array(reader.result));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        };
 
         function preprendFilename(filename, data_bytes) {
             const filename_bytes = new TextEncoder('utf-8').encode(filename + '/');
@@ -97,21 +117,38 @@
                 alert(
                     'Full support for the WebCrypto API is needed for decryption. Please use one of the following browsers: Chrome 37+, Firefox 34+, Safari 7+, Opera 24+'
                 )
+                return;
             }
+
+            const file = document.getElementById('file').files[0];
+            if (!file) {
+                alert('Select a file.');
+                return;
+            }
+            const password = document.getElementById('password').value;
+            if (password != document.getElementById('password_repeated').value) {
+                alert('Passwords must match.');
+                return;
+            }
+
+            document.getElementById('encrypt').disabled = true;
+            document.getElementById('encrypt').value = "Encrypting...";
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
-            const filename = FILENAME;
 
-            const payload_bytes = preprendFilename(filename, DATA_BYTES);
-            const password = document.getElementById('txt_password').value;
-            deriveKey(password, salt)
-                .then(key => encrypt(key, iv, payload_bytes))
+            readFile(file)
+                .then(file_bytes => preprendFilename(file.name, file_bytes))
+                .then(payload_bytes => deriveKey(password, salt)
+                    .then(key => encrypt(key, iv, payload_bytes)))
                 .then(buffer => serialize(salt, iv, buffer))
-                .then(buffer => download(filename + '.html', buffer));
+                .then(buffer => download(file.name + '.html', buffer));
+
+            document.getElementById('encrypt').disabled = false;
+            document.getElementById('encrypt').value = "Encrypt file";
         }
 
-        document.getElementById('btn_encrypt').addEventListener('click', runEncrypt);
+        document.getElementById('encrypt').addEventListener('click', runEncrypt);
     </script>
 </body>
 

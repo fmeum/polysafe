@@ -3,20 +3,16 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Trusty Safe</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-    <input type="password" id="txt_password">
-    <input type="button" id="btn_decrypt" value="Decrypt">
+    <label for="password">Password:</label>
+    <input type="password" id="password">
+    <input type="button" id="decrypt" value="Decrypt file">
     <script id="data" type="application/json">
-        {
-            "salt": [165, 53, 153, 232, 105, 222, 39, 196, 131, 137, 177, 206, 194, 115, 44, 134],
-            "iv": [242, 219, 91, 123, 1, 41, 185, 50, 119, 236, 254, 2, 101, 222, 43, 149],
-            "encrypted": "0FfxZGsvBgzNKgYdr/81/qXgtHErYoV3RWWQOEPo1G4kSV57RfVj+hfa/noomjL7xezz"
-        }
+        {"salt":[255,64,43,211,4,88,91,37,24,33,41,82,255,249,226,146],"iv":[61,131,249,232,63,7,218,245,31,64,16,48,231,106,16,233],"encrypted":"5zJ7IDDz11sUzry6pBIX5XKDrWL986AO/6Ay3ikz+z7ozkPOR59LqvNeB0TFz/AB3TaM"}
     </script>
     <script>
         function base64ToArray(base64) {
@@ -97,19 +93,25 @@
                     'Full support for the WebCrypto API is needed for decryption. Please use one of the following browsers: Chrome 37+, Firefox 34+, Safari 7+, Opera 24+'
                 )
             }
+            document.getElementById('decrypt').disabled = true;
+            document.getElementById('decrypt').value = "Decrypting...";
+
             const data = JSON.parse(document.getElementById('data').textContent);
             const salt = new Uint8Array(data.salt);
             const iv = new Uint8Array(data.iv);
             const encrypted = base64ToArray(data.encrypted);
 
-            const password = document.getElementById('txt_password').value;
+            const password = document.getElementById('password').value;
             deriveKey(password, salt)
                 .then(key => decrypt(key, iv, encrypted))
                 .then(extractDecryptedFile)
                 .then(file => download(file.name, file.content));
+
+            document.getElementById('decrypt').disabled = false;
+            document.getElementById('decrypt').value = "Decrypt file";
         }
 
-        document.getElementById('btn_decrypt').addEventListener('click', runDecrypt);
+        document.getElementById('decrypt').addEventListener('click', runDecrypt);
     </script>
 </body>
 
