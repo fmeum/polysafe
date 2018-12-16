@@ -32,7 +32,7 @@
             return new Promise((resolve, reject) => {
                 reader.onerror = () => {
                     reader.abort();
-                    reject(new DOMException("Cannot read input file."));
+                    reject(new DOMException('Cannot read input file.'));
                 };
 
                 reader.onload = () => {
@@ -61,15 +61,15 @@
                 ['deriveKey']
             ).then(function (key) {
                 return window.crypto.subtle.deriveKey({
-                        name: "PBKDF2",
+                        name: 'PBKDF2',
                         salt,
                         iterations: 200000,
                         hash: {
-                            name: "SHA-512"
+                            name: 'SHA-512'
                         }
                     },
                     key, {
-                        name: "AES-GCM",
+                        name: 'AES-GCM',
                         length: 256
                     },
                     false,
@@ -80,7 +80,7 @@
 
         function encrypt(key, iv, bytes) {
             return window.crypto.subtle.encrypt({
-                name: "AES-GCM",
+                name: 'AES-GCM',
                 length: 256,
                 iv
             }, key, bytes)
@@ -137,7 +137,7 @@
             }
 
             document.getElementById('encrypt').disabled = true;
-            document.getElementById('encrypt').value = "Encrypting...";
+            document.getElementById('encrypt').value = 'Encrypting...';
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
@@ -150,7 +150,7 @@
                 .then(buffer => download(file.name + '.html', buffer));
 
             document.getElementById('encrypt').disabled = false;
-            document.getElementById('encrypt').value = "Encrypt file";
+            document.getElementById('encrypt').value = 'Encrypt file';
         }
 
         document.getElementById('encrypt').addEventListener('click', runEncrypt);

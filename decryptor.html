@@ -33,15 +33,15 @@
                 ['deriveKey']
             ).then(function (key) {
                 return window.crypto.subtle.deriveKey({
-                        name: "PBKDF2",
+                        name: 'PBKDF2',
                         salt,
                         iterations: 200000,
                         hash: {
-                            name: "SHA-512"
+                            name: 'SHA-512'
                         }
                     },
                     key, {
-                        name: "AES-GCM",
+                        name: 'AES-GCM',
                         length: 256
                     },
                     false,
@@ -52,7 +52,7 @@
 
         function decrypt(key, iv, bytes) {
             return window.crypto.subtle.decrypt({
-                name: "AES-GCM",
+                name: 'AES-GCM',
                 length: 256,
                 iv
             }, key, bytes)
@@ -62,7 +62,7 @@
             const bytes = new Uint8Array(buffer);
             const slash_pos = bytes.indexOf('/'.charCodeAt(0));
             if (slash_pos == -1) {
-                throw "Decrypted data is corrupted";
+                throw 'Decrypted data is corrupted';
             } else {
                 const name = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
                 const content = bytes.slice(slash_pos + 1);
@@ -94,7 +94,7 @@
                 )
             }
             document.getElementById('decrypt').disabled = true;
-            document.getElementById('decrypt').value = "Decrypting...";
+            document.getElementById('decrypt').value = 'Decrypting...';
 
             const data = JSON.parse(document.getElementById('data').textContent);
             const salt = new Uint8Array(data.salt);
@@ -108,7 +108,7 @@
                 .then(file => download(file.name, file.content));
 
             document.getElementById('decrypt').disabled = false;
-            document.getElementById('decrypt').value = "Decrypt file";
+            document.getElementById('decrypt').value = 'Decrypt file';
         }
 
         document.getElementById('decrypt').addEventListener('click', runDecrypt);
