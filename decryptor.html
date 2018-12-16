@@ -14,25 +14,14 @@
     <script>
         const PBKDF2_SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         const AES_GCM_IV = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
-        const FILENAME = '';
-        const ENCRYPTED_DATA_UTF8 = 'test';
+        const FILENAME = 'example.txt';
+        const ENCRYPTED_BYTES = new Uint8Array([209, 6, 163, 99, 209, 154, 220, 158, 168, 68, 235, 224, 89, 113, 103,
+            112, 74, 63, 46, 64, 95, 151, 154, 152, 85, 3, 211, 88, 170, 175, 83, 107, 197, 255, 167, 43, 17,
+            35, 123
+        ]);
     </script>
     <script>
-        const DERIVATION_ALGORITHM = {
-            name: "PBKDF2",
-            salt: PBKDF2_SALT,
-            iterations: 200000,
-            hash: {
-                name: "SHA-512"
-            }
-        };
-        const DECRYPTION_ALGORITHM = {
-            name: "AES-GCM",
-            length: 256,
-            iv: AES_GCM_IV
-        };
-
-        function deriveKey(password) {
+        function deriveKey(password, salt) {
             const passwordBytes = new TextEncoder('utf-8').encode(password);
 
             return window.crypto.subtle.importKey(
@@ -43,37 +32,42 @@
                 false,
                 ['deriveKey']
             ).then(function (key) {
-                return window.crypto.subtle.deriveKey(DERIVATION_ALGORITHM,
-                    key,
-                    DECRYPTION_ALGORITHM,
+                return window.crypto.subtle.deriveKey({
+                        name: "PBKDF2",
+                        salt,
+                        iterations: 200000,
+                        hash: {
+                            name: "SHA-512"
+                        }
+                    },
+                    key, {
+                        name: "AES-GCM",
+                        length: 256
+                    },
                     false,
-                    ['decrypt', 'encrypt']
+                    ['decrypt']
                 )
             });
         }
 
-        function decrypt(key) {
-            const encryptedBytes = new TextEncoder('utf-8').encode(ENCRYPTED_DATA_UTF8);
-            return window.crypto.subtle.decrypt(DECRYPTION_ALGORITHM, key, encryptedBytes)
+        function decrypt(key, iv, bytes) {
+            return window.crypto.subtle.decrypt({
+                name: "AES-GCM",
+                length: 256,
+                iv
+            }, key, bytes)
         }
 
-        function encrypt(key) {
-            const bytes = new TextEncoder('utf-8').encode(ENCRYPTED_DATA_UTF8);
-            return window.crypto.subtle.encrypt(DECRYPTION_ALGORITHM, key, encryptedBytes);
-        }
-
-        function download(bytes) {
-            const downloadLink = document.createElement('a');
-            a.style = 'display: none';
-            document.body.appendChild(a);
-            blob = new Blob([bytes.buffer], {
-                type: 'application/octet-stream'
-            });
-            url = window.URL.createObjectURL(blob);
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            window.URL.revokeObjectURL(url);
+        function extractDecryptedContent(buffer) {
+            const bytes = new Uint8Array(buffer);
+            const slash_pos = bytes.indexOf('/');
+            if (slash_pos == -1) {
+                throw "Decrypted data is corrupted";
+            } else {
+                const filename = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
+                const content = bytes.slice(slash_pos + 1);
+                return (filename, content);
+            }
         }
 
         function runDecrypt() {
@@ -83,7 +77,11 @@
                 )
             }
             const password = document.getElementById('txt_password').value;
-            deriveKey(password).then(decrypt).then(download);
+            deriveKey(password, PBKDF2_SALT)
+                .then(key => decrypt(key, AES_GCM_IV, ENCRYPTED_BYTES))
+                .catch(e => console.log(e))
+                .then(extractDecryptedContent)
+                .then((filename, content) => download(filename, buffer));
         }
 
         document.getElementById('btn_decrypt').addEventListener('click', runDecrypt);
