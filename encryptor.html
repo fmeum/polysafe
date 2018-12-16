@@ -87,7 +87,12 @@
         }
 
         function arrayToBase64(array) {
-            return btoa(String.fromCharCode.apply(null, array));
+            let binary = '';
+            let len = array.byteLength;
+            for (let i = 0; i< len; i++) {
+                binary += String.fromCharCode(array[i]);
+            }
+            return btoa(binary);
         }
 
         function serialize(salt, iv, cipher_buffer) {
