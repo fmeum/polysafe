@@ -89,7 +89,7 @@
         function arrayToBase64(array) {
             let binary = '';
             let len = array.byteLength;
-            for (let i = 0; i< len; i++) {
+            for (let i = 0; i < len; i++) {
                 binary += String.fromCharCode(array[i]);
             }
             return btoa(binary);
@@ -158,7 +158,8 @@
 
         document.getElementById('encrypt').addEventListener('click', runEncrypt);
 
-        const DECRYPTOR_TEMPLATE = `
+        const DECRYPTOR_TEMPLATE =
+            `
 <!DOCTYPE html>
 <html>
 
