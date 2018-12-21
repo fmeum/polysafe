@@ -70,7 +70,7 @@
         </div>
     </form>
     <script>
-        "use strict";
+        'use strict';
 
         function getRandomBytes(num) {
             let bytes = new Uint8Array(num);
@@ -88,7 +88,7 @@
             return new Promise((resolve, reject) => {
                 reader.onerror = () => {
                     reader.abort();
-                    reject(new DOMException("Cannot read input file."));
+                    reject(new DOMException('Cannot read input file.'));
                 };
 
                 reader.onload = () => {
@@ -117,15 +117,15 @@
                 ['deriveKey']
             ).then(function (key) {
                 return window.crypto.subtle.deriveKey({
-                        name: "PBKDF2",
+                        name: 'PBKDF2',
                         salt,
                         iterations: 200000,
                         hash: {
-                            name: "SHA-1"
+                            name: 'SHA-1'
                         }
                     },
                     key, {
-                        name: "AES-GCM",
+                        name: 'AES-GCM',
                         length: 256
                     },
                     false,
@@ -136,7 +136,7 @@
 
         function encrypt(key, iv, bytes) {
             return window.crypto.subtle.encrypt({
-                name: "AES-GCM",
+                name: 'AES-GCM',
                 length: 256,
                 iv
             }, key, bytes);
@@ -247,7 +247,7 @@
 
             const encryptButton = document.querySelector('input[type=submit]');
             encryptButton.disabled = true;
-            encryptButton.value = "Encrypting...";
+            encryptButton.value = 'Encrypting...';
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
@@ -258,10 +258,10 @@
                     .then(key => encrypt(key, iv, payload_bytes)))
                 .then(buffer => serialize(salt, iv, buffer))
                 .then(buffer => download(file.name + '.html', buffer))
-                .catch(e => alert("Error during encryption: " + e.message))
+                .catch(e => alert('Error during encryption: ' + e.message))
                 .finally(() => {
                     encryptButton.disabled = false;
-                    encryptButton.value = "Encrypt file";
+                    encryptButton.value = 'Encrypt file';
                 });
         }
 
