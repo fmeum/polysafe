@@ -353,9 +353,7 @@
             var a = document.createElement('a');
             a.style = 'display: none';
             document.body.appendChild(a);
-            var blob = new Blob([file.content], {
-                type: 'application/octet-stream'
-            });
+            var blob = new Blob([file.content]);
             var url = window.URL.createObjectURL(blob);
             a.href = url;
             a.download = file.name;
