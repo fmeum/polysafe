@@ -160,10 +160,10 @@
             const a = document.createElement('a');
             a.style = 'display: none';
             document.body.appendChild(a);
-            blob = new Blob([buffer], {
+            const blob = new Blob([buffer], {
                 type: 'application/octet-stream'
             });
-            url = window.URL.createObjectURL(blob);
+            const url = window.URL.createObjectURL(blob);
             a.href = url;
             a.download = filename;
             a.click();
