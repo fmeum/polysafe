@@ -336,12 +336,12 @@
 
         function extractDecryptedFile(buffer) {
             var bytes = new Uint8Array(buffer);
-            var slash_pos = bytes.indexOf('/'.charCodeAt(0));
+            var slash_pos = Array.prototype.indexOf.call(bytes, '/'.charCodeAt(0));
             if (slash_pos == -1) {
                 throw 'Decrypted data is corrupted';
             } else {
-                var name = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
-                var content = bytes.slice(slash_pos + 1);
+                var name = new TextDecoder('utf-8').decode(new Uint8Array(Array.prototype.slice.call(bytes, 0, slash_pos)));
+                var content = new Uint8Array(Array.prototype.slice.call(bytes, slash_pos + 1));
                 return {
                     name: name,
                     content: content
