@@ -96,19 +96,24 @@
             document.getElementById('decrypt').disabled = true;
             document.getElementById('decrypt').value = 'Decrypting...';
 
-            const data = JSON.parse(document.getElementById('data').textContent);
-            const salt = new Uint8Array(data.salt);
-            const iv = new Uint8Array(data.iv);
-            const encrypted = base64ToArray(data.encrypted);
+            setTimeout(function () {
+                const data = JSON.parse(document.getElementById('data').textContent);
+                const salt = new Uint8Array(data.salt);
+                const iv = new Uint8Array(data.iv);
+                const encrypted = base64ToArray(data.encrypted);
 
-            const password = document.getElementById('password').value;
-            deriveKey(password, salt)
-                .then(key => decrypt(key, iv, encrypted))
-                .then(extractDecryptedFile)
-                .then(file => download(file.name, file.content));
-
-            document.getElementById('decrypt').disabled = false;
-            document.getElementById('decrypt').value = 'Decrypt file';
+                const password = document.getElementById('password').value;
+                deriveKey(password, salt)
+                    .then(key => decrypt(key, iv, encrypted))
+                    .catch(e => {throw 'Wrong password or corrupted file.'})
+                    .then(extractDecryptedFile)
+                    .then(file => download(file.name, file.content))
+                    .catch(e => alert('Error during decryption: ' + e))
+                    .finally(() => {
+                        document.getElementById('decrypt').disabled = false;
+                        document.getElementById('decrypt').value = 'Decrypt file';
+                    });
+            }, 0);
         }
 
         document.getElementById('decrypt').addEventListener('click', runDecrypt);
