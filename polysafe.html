@@ -203,7 +203,8 @@
                     .then(key => encrypt(key, iv, payload_bytes)))
                 .then(buffer => serialize(salt, iv, buffer))
                 .then(buffer => download(file.name + '.html', buffer))
-                .then(() => {
+                .catch(e => alert("Error during encryption: " + e.message))
+                .finally(() => {
                     document.getElementById('encrypt').disabled = false;
                     document.getElementById('encrypt').value = "Encrypt file";
                 });
