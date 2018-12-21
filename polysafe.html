@@ -5,16 +5,70 @@
     <meta charset="utf-8" />
     <title>PolySafe</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        form {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            grid-gap: 10px;
+            align-items: center;
+        }
+
+        .grid-1-l {
+            grid-row: 1;
+            grid-column: 1;
+        }
+
+        .grid-1-r {
+            grid-row: 1;
+            grid-column: 2;
+        }
+        .grid-2-l {
+            grid-row: 2;
+            grid-column: 1;
+        }
+        .grid-2-r {
+            grid-row: 2;
+            grid-column: 2;
+        }
+        .grid-3-l {
+            grid-row: 3;
+            grid-column: 1;
+        }
+        .grid-3-r {
+            grid-row: 3;
+            grid-column: 2;
+        }
+        .grid-4-r {
+            grid-row: 4;
+            grid-column: 2;
+        }
+    </style>
 </head>
 
 <body>
-    <label for="file">Choose a file to encrypt:</label>
-    <input type="file" id="file"><br>
-    <label for="password">Password:</label>
-    <input type="password" id="password"><br>
-    <label for="password_repeated">Repeat password:</label>
-    <input type="password" id="password_repeated"><br>
-    <input type="button" id="encrypt" value="Encrypt file">
+    <form>
+        <div class="grid-1-l">
+            <label for="file">File to encrypt:</label>
+        </div>
+        <div class="grid-1-r">
+            <input type="file" id="file" autofocus>
+        </div>
+        <div class="grid-2-l">
+            <label for="password">Password:</label>
+        </div>
+        <div class="grid-2-r">
+            <input type="password" id="password">
+        </div>
+        <div class="grid-3-l">
+            <label for="password_repeated">Repeat password:</label>
+        </div>
+        <div class="grid-3-r">
+            <input type="password" id="password_repeated">
+        </div>
+        <div class="grid-4-r">
+            <input type="submit" value="Encrypt file">
+        </div>
+    </form>
     <script>
         "use strict";
 
@@ -182,7 +236,7 @@
 
             const file = document.getElementById('file').files[0];
             if (!file) {
-                alert('Select a file.');
+                alert('Select a file first.');
                 return;
             }
             const password = document.getElementById('password').value;
@@ -191,8 +245,9 @@
                 return;
             }
 
-            document.getElementById('encrypt').disabled = true;
-            document.getElementById('encrypt').value = "Encrypting...";
+            const encryptButton = document.querySelector('input[type=submit]');
+            encryptButton.disabled = true;
+            encryptButton.value = "Encrypting...";
 
             const salt = getRandomBytes(16);
             const iv = getRandomBytes(16);
@@ -205,12 +260,15 @@
                 .then(buffer => download(file.name + '.html', buffer))
                 .catch(e => alert("Error during encryption: " + e.message))
                 .finally(() => {
-                    document.getElementById('encrypt').disabled = false;
-                    document.getElementById('encrypt').value = "Encrypt file";
+                    encryptButton.disabled = false;
+                    encryptButton.value = "Encrypt file";
                 });
         }
 
-        document.getElementById('encrypt').addEventListener('click', runEncrypt);
+        document.querySelector('form').addEventListener('submit', e => {
+            e.preventDefault();
+            runEncrypt();
+        });
 
         const DECRYPTOR_TEMPLATE =
             `
