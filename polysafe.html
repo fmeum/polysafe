@@ -358,7 +358,9 @@
             a.href = url;
             a.download = file.name;
             a.click();
-            window.URL.revokeObjectURL(url);
+            setTimeout(function () {
+                window.URL.revokeObjectURL(url);
+            }, 10000);
         }
 
         function runDecrypt() {
