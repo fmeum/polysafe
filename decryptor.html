@@ -22,7 +22,7 @@
         }
 
         function deriveKey(password, salt) {
-            const passwordBytes = new TextEncoder('utf-8').encode(password);
+            var passwordBytes = new TextEncoder('utf-8').encode(password);
 
             return window.crypto.subtle.importKey(
                 'raw',
@@ -34,7 +34,7 @@
             ).then(function (key) {
                 return window.crypto.subtle.deriveKey({
                         name: 'PBKDF2',
-                        salt,
+                        salt: salt,
                         iterations: 200000,
                         hash: {
                             name: 'SHA-512'
@@ -54,35 +54,35 @@
             return window.crypto.subtle.decrypt({
                 name: 'AES-GCM',
                 length: 256,
-                iv
-            }, key, bytes)
+                iv: iv
+            }, key, bytes);
         }
 
         function extractDecryptedFile(buffer) {
-            const bytes = new Uint8Array(buffer);
-            const slash_pos = bytes.indexOf('/'.charCodeAt(0));
+            var bytes = new Uint8Array(buffer);
+            var slash_pos = bytes.indexOf('/'.charCodeAt(0));
             if (slash_pos == -1) {
                 throw 'Decrypted data is corrupted';
             } else {
-                const name = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
-                const content = bytes.slice(slash_pos + 1);
+                var name = new TextDecoder('utf-8').decode(bytes.slice(0, slash_pos));
+                var content = bytes.slice(slash_pos + 1);
                 return {
-                    name,
-                    content
+                    name: name,
+                    content: content
                 };
             }
         }
 
-        function download(filename, buffer) {
-            const a = document.createElement('a');
+        function download(file) {
+            var a = document.createElement('a');
             a.style = 'display: none';
             document.body.appendChild(a);
-            blob = new Blob([buffer], {
+            var blob = new Blob([file.content], {
                 type: 'application/octet-stream'
             });
-            url = window.URL.createObjectURL(blob);
+            var url = window.URL.createObjectURL(blob);
             a.href = url;
-            a.download = filename;
+            a.download = file.name;
             a.click();
             window.URL.revokeObjectURL(url);
         }
@@ -97,19 +97,25 @@
             document.getElementById('decrypt').value = 'Decrypting...';
 
             setTimeout(function () {
-                const data = JSON.parse(document.getElementById('data').textContent);
-                const salt = new Uint8Array(data.salt);
-                const iv = new Uint8Array(data.iv);
-                const encrypted = base64ToArray(data.encrypted);
+                var data = JSON.parse(document.getElementById('data').textContent);
+                var salt = new Uint8Array(data.salt);
+                var iv = new Uint8Array(data.iv);
+                var encrypted = base64ToArray(data.encrypted);
 
-                const password = document.getElementById('password').value;
+                var password = document.getElementById('password').value;
                 deriveKey(password, salt)
-                    .then(key => decrypt(key, iv, encrypted))
-                    .catch(e => {throw 'Wrong password or corrupted file.'})
+                    .then(function (key) {
+                        return decrypt(key, iv, encrypted);
+                    })
+                    .catch(function () {
+                        throw 'Wrong password or corrupted file.';
+                    })
                     .then(extractDecryptedFile)
-                    .then(file => download(file.name, file.content))
-                    .catch(e => alert('Error during decryption: ' + e))
-                    .finally(() => {
+                    .then(download)
+                    .catch(function (e) {
+                        alert('Error during decryption: ' + e);
+                    })
+                    .then(function () {
                         document.getElementById('decrypt').disabled = false;
                         document.getElementById('decrypt').value = 'Decrypt file';
                     });
