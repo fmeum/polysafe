@@ -149,10 +149,11 @@
                 .then(payload_bytes => deriveKey(password, salt)
                     .then(key => encrypt(key, iv, payload_bytes)))
                 .then(buffer => serialize(salt, iv, buffer))
-                .then(buffer => download(file.name + '.html', buffer));
-
-            document.getElementById('encrypt').disabled = false;
-            document.getElementById('encrypt').value = "Encrypt file";
+                .then(buffer => download(file.name + '.html', buffer))
+                .then(() => {
+                    document.getElementById('encrypt').disabled = false;
+                    document.getElementById('encrypt').value = "Encrypt file";
+                });
         }
 
         document.getElementById('encrypt').addEventListener('click', runEncrypt);
