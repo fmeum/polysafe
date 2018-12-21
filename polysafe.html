@@ -224,9 +224,11 @@
 </head>
 
 <body>
-    <label for="password">Password:</label>
-    <input type="password" id="password">
-    <input type="button" id="decrypt" value="Decrypt file">
+    <form>
+        <label for="password">Password:</label>
+        <input type="password" autofocus>
+        <input type="submit" value="Decrypt file">
+    </form>
     <script id="data" type="application/json">
         {{___PAYLOAD___}}
     <\/script>
@@ -309,8 +311,10 @@
                     'Full support for the WebCrypto API is needed for decryption. Please use one of the following browsers: Chrome 37+, Firefox 34+, Safari 7+, Opera 24+'
                 )
             }
-            document.getElementById('decrypt').disabled = true;
-            document.getElementById('decrypt').value = 'Decrypting...';
+
+            var decryptButton = document.querySelector('input[type=submit]');
+            decryptButton.disabled = true;
+            decryptButton.value = 'Decrypting...';
 
             setTimeout(function () {
                 var data = JSON.parse(document.getElementById('data').textContent);
@@ -318,7 +322,7 @@
                 var iv = new Uint8Array(data.iv);
                 var encrypted = base64ToArray(data.encrypted);
 
-                var password = document.getElementById('password').value;
+                var password = document.querySelector('input[type=password]').value;
                 deriveKey(password, salt)
                     .then(function (key) {
                         return decrypt(key, iv, encrypted);
@@ -332,13 +336,16 @@
                         alert('Error during decryption: ' + e);
                     })
                     .then(function () {
-                        document.getElementById('decrypt').disabled = false;
-                        document.getElementById('decrypt').value = 'Decrypt file';
+                        decryptButton.disabled = false;
+                        decryptButton.value = 'Decrypt file';
                     });
             }, 0);
         }
 
-        document.getElementById('decrypt').addEventListener('click', runDecrypt);
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            runDecrypt();
+        });
     <\/script>
 </body>
 
