@@ -291,6 +291,10 @@
         {{___PAYLOAD___}}
     <\/script>
     <script>
+        if (window.crypto && !window.crypto.subtle && window.crypto.webkitSubtle) {
+            window.crypto.subtle = window.crypto.webkitSubtle;
+        }
+
         function base64ToArray(base64) {
             return new Uint8Array(atob(base64).split('').map(function (c) {
                 return c.charCodeAt(0);
