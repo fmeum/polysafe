@@ -134,7 +134,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     },
                     key, {
                         name: 'AES-GCM',
-                        length: 256
+                        length: 128
                     },
                     false,
                     ['encrypt']
@@ -145,7 +145,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         function encrypt(key, iv, bytes) {
             return window.crypto.subtle.encrypt({
                 name: 'AES-GCM',
-                length: 256,
+                length: 128,
                 iv
             }, key, bytes);
         }
@@ -330,7 +330,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     },
                     key, {
                         name: 'AES-GCM',
-                        length: 256
+                        length: 128
                     },
                     false,
                     ['decrypt']
@@ -341,7 +341,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         function decrypt(key, iv, bytes) {
             return window.crypto.subtle.decrypt({
                 name: 'AES-GCM',
-                length: 256,
+                length: 128,
                 iv: iv
             }, key, bytes);
         }
