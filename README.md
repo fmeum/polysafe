@@ -47,6 +47,8 @@ Combined with a high-entropy password, this algorithmic setup should be reasonab
 
 Note that PBKDF2 does **not** offer the same level of resistance against GPU- and ASIC-based attacks as more recent algorithms such as scrypt or Argon2. These algorithms are not supported by the WebCrypto API and would thus have made the implementation both more complex and much less efficient. Since "Never trust a random guy on GitHub" should come well before "Protect against dedicated adversaries with GPU clusters" in anyone's threat model, not supporting better key derivation algorithms is a trade-off I am willing to make.
 
+Should the self-decrypting HTML file have passed outside of your control between creating it and decrypting it again (e.g. you sent it to yourself by email or uploaded it somewhere on the web), then you may want to verify that the file has not been tampered with. For example the file could have been modified in such a way that the password will be leaked.
+
 ## License
 
 MIT
