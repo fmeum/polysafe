@@ -290,7 +290,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 </head>
 
 <body>
-    <form>
+    <noscript>
+        Decryption will not work without JavaScript enabled!<br/>
+    </noscript>
+    <form action="javascript:;" style="display:none">
         <label for="password">Password:</label>
         <input type="password" autofocus>
         <input type="submit" value="Decrypt file">
@@ -416,6 +419,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             e.preventDefault();
             runDecrypt();
         });
+        document.querySelector('form').style.display = 'block';
     <\/script>
 </body>
 
