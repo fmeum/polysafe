@@ -54,7 +54,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 </head>
 
 <body>
-    <form>
+    <noscript>
+        PolySafe will not work without JavaScript enabled!<br/>
+    </noscript>
+    <form action="javascript:;" style="display:none">
         <div class="grid-1-l">
             <label for="file">File to encrypt:</label>
         </div>
@@ -277,6 +280,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             e.preventDefault();
             runEncrypt();
         });
+        document.querySelector('form').style.display = 'block';
 
         const DECRYPTOR_TEMPLATE =
             `
